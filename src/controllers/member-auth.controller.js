@@ -1,0 +1,187 @@
+
+'use strict';
+
+const {
+    findMemberForLogin,
+    findMemberById,
+    changePassword
+} = require('../services/member.service');
+
+const {
+    verifyPassword
+} = require('../services/auth.service');
+
+const {
+    createMemberSession,
+    deleteMemberSession,
+    deleteAllMemberSessions
+} = require('../services/member-session.service');
+
+const COOKIE_NAME = 'shinobi_session';
+const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000;
+
+const cookieOptions = {
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: SESSION_DURATION
+};
+
+async function login(req, res) {
+    const { loginUsername, password } = req.body || {};
+
+    if (
+        typeof loginUsername !== 'string' ||
+        typeof password !== 'string' ||
+        !loginUsername.trim() ||
+        !password
+    ) {
+        return res.status(400).json({
+            error: 'Preenche o utilizador e a senha.'
+        });
+    }
+
+    const member = findMemberForLogin(loginUsername);
+
+    if (!member || member.status !== 'active') {
+        return res.status(401).json({
+            error: 'Credenciais inválidas.'
+        });
+    }
+
+    const passwordIsValid = await verifyPassword(
+        password,
+        member.password_hash
+    );
+
+    if (!passwordIsValid) {
+        return res.status(401).json({
+            error: 'Credenciais inválidas.'
+        });
+    }
+
+    const session = await createMemberSession(member.id);
+    const token = typeof session === 'string'
+        ? session
+        : session?.token;
+
+    if (!token) {
+        return res.status(500).json({
+            error: 'Não foi possível criar a sessão.'
+        });
+    }
+
+    res.cookie(COOKIE_NAME, token, cookieOptions);
+
+    const safeMember = findMemberById(member.id);
+
+    return res.status(200).json({
+        message: 'Login efetuado com sucesso.',
+        member: safeMember
+    });
+}
+
+function logout(req, res) {
+    const token = req.cookies?.[COOKIE_NAME];
+
+    if (token) {
+        deleteMemberSession(token);
+    }
+
+    res.clearCookie(COOKIE_NAME, {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/'
+    });
+
+    return res.status(200).json({
+        message: 'Sessão terminada.'
+    });
+}
+
+async function updatePassword(req, res) {
+    const { currentPassword, newPassword } = req.body || {};
+
+    if (
+        typeof currentPassword !== 'string' ||
+        typeof newPassword !== 'string' ||
+        !currentPassword ||
+        !newPassword
+    ) {
+        return res.status(400).json({
+            error: 'Preenche a senha atual e a nova senha.'
+        });
+    }
+
+    if (Buffer.byteLength(newPassword, 'utf8') < 8 ||
+        Buffer.byteLength(newPassword, 'utf8') > 128) {
+        return res.status(400).json({
+            error: 'A nova senha deve ter entre 8 e 128 bytes.'
+        });
+    }
+
+    const member = findMemberForLogin(req.member.login_username);
+
+    if (!member || member.status !== 'active') {
+        return res.status(401).json({
+            error: 'Conta inválida.'
+        });
+    }
+
+    const passwordIsValid = await verifyPassword(
+        currentPassword,
+        member.password_hash
+    );
+
+    if (!passwordIsValid) {
+        return res.status(401).json({
+            error: 'A senha atual está incorreta.'
+        });
+    }
+
+    const updated = await changePassword(
+        req.member.member_id,
+        newPassword
+    );
+
+    if (!updated) {
+        return res.status(500).json({
+            error: 'Não foi possível alterar a senha.'
+        });
+    }
+
+    deleteAllMemberSessions(req.member.member_id);
+
+    const session = await createMemberSession(req.member.member_id);
+    const token = typeof session === 'string'
+        ? session
+        : session?.token;
+
+    if (!token) {
+        res.clearCookie(COOKIE_NAME, {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',
+            path: '/'
+        });
+
+        return res.status(500).json({
+            error: 'Senha alterada. Entra novamente na tua conta.'
+        });
+    }
+
+    res.cookie(COOKIE_NAME, token, cookieOptions);
+
+    return res.status(200).json({
+        message: 'Senha alterada com sucesso.',
+        member: findMemberById(req.member.member_id)
+    });
+}
+
+module.exports = {
+    login,
+    logout,
+    updatePassword
+};
