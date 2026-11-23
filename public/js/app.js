@@ -117,9 +117,9 @@ function showLogin() {
                     </label>
                     <label>
                         Palavra-passe
-                        <input name="password" type="password"
+                        <span data-eye-wrap style="position:relative;display:flex;align-items:center;width:100%;"><input style="padding-right:76px;" name="password" type="password"
                             autocomplete="current-password"
-                            placeholder="A tua palavra-passe" required>
+                            placeholder="A tua palavra-passe" required><button type="button" data-eye-btn aria-label="Alternar visibilidade da senha" style="position:absolute;right:10px;background:transparent;border:1px solid rgba(255,255,255,0.16);border-radius:4px;color:inherit;opacity:0.78;cursor:pointer;padding:2px 7px;font-size:10px;letter-spacing:0.06em;line-height:1.2;">VER</button></span>
                     </label>
                     <button class="primary-button" type="submit">ENTRAR</button>
                 </form>
@@ -139,7 +139,7 @@ async function login(event) {
         const data = await api('/auth/login', {
             method: 'POST',
             body: JSON.stringify({
-                username: form.get('username'),
+                loginUsername: form.get('username'),
                 password: form.get('password')
             })
         });
@@ -165,18 +165,18 @@ function showPasswordChange() {
                 <form id="password-form" class="form-stack">
                     <label>
                         Palavra-passe atual
-                        <input name="currentPassword" type="password"
-                            autocomplete="current-password" required>
+                        <span data-eye-wrap style="position:relative;display:flex;align-items:center;width:100%;"><input style="padding-right:76px;" name="currentPassword" type="password"
+                            autocomplete="current-password" required><button type="button" data-eye-btn aria-label="Alternar visibilidade da senha" style="position:absolute;right:10px;background:transparent;border:1px solid rgba(255,255,255,0.16);border-radius:4px;color:inherit;opacity:0.78;cursor:pointer;padding:2px 7px;font-size:10px;letter-spacing:0.06em;line-height:1.2;">VER</button></span>
                     </label>
                     <label>
                         Nova palavra-passe
-                        <input name="newPassword" type="password"
-                            autocomplete="new-password" minlength="8" required>
+                        <span data-eye-wrap style="position:relative;display:flex;align-items:center;width:100%;"><input style="padding-right:76px;" name="newPassword" type="password"
+                            autocomplete="new-password" minlength="8" required><button type="button" data-eye-btn aria-label="Alternar visibilidade da senha" style="position:absolute;right:10px;background:transparent;border:1px solid rgba(255,255,255,0.16);border-radius:4px;color:inherit;opacity:0.78;cursor:pointer;padding:2px 7px;font-size:10px;letter-spacing:0.06em;line-height:1.2;">VER</button></span>
                     </label>
                     <label>
                         Confirmar nova palavra-passe
-                        <input name="confirmPassword" type="password"
-                            autocomplete="new-password" minlength="8" required>
+                        <span data-eye-wrap style="position:relative;display:flex;align-items:center;width:100%;"><input style="padding-right:76px;" name="confirmPassword" type="password"
+                            autocomplete="new-password" minlength="8" required><button type="button" data-eye-btn aria-label="Alternar visibilidade da senha" style="position:absolute;right:10px;background:transparent;border:1px solid rgba(255,255,255,0.16);border-radius:4px;color:inherit;opacity:0.78;cursor:pointer;padding:2px 7px;font-size:10px;letter-spacing:0.06em;line-height:1.2;">VER</button></span>
                     </label>
                     <button class="primary-button" type="submit">
                         ATUALIZAR SENHA
@@ -233,19 +233,20 @@ function render() {
 function showLayout() {
     const navItems = [
         ['dashboard', '⌂', 'Dashboard'],
-        ['chat', '💬', 'CHAT'],
-        ['shop', '🃏', 'LOJA DE CARDS'],
-        ['inventory', '🎒', 'INVENTÁRIO'],
-        ['how-to-play', '📖', 'COMO JOGAR'],
-        ['feed', '▤', 'SHINOBI NETWORK'],
-        ['ranking', '♛', 'SHINOBI RANKING'],
-        ['ninja-search', '⌕', 'PROCURAR NINJAS'],
-        ['profile', '◉', 'Meu perfil'],
-        ['clans', '⌘', 'Clãs']
+        ['chat', '◈', 'Chat'],
+        ['shop', '❖', 'Loja de Cards'],
+        ['inventory', '◫', 'Inventário'],
+        ['how-to-play', '◧', 'Como Jogar'],
+        ['feed', '▤', 'Shinobi Network'],
+        ['ranking', '♛', 'Shinobi Ranking'],
+        ['ninja-search', '⌕', 'Procurar Ninjas'],
+        ['profile', '◉', 'Meu Perfil'],
+        ['clans', '⌘', 'Clãs'],
+        ['settings', '⚙', 'Configurações']
     ];
 
     if (canManageMembers()) {
-        navItems.push(['admin', '⚙', 'Administração']);
+        navItems.push(['admin', '🛡', 'Administração']);
     }
 
     app.innerHTML = `
@@ -360,6 +361,9 @@ function renderPage() {
     } else if (currentPage === 'clans') {
         setPageHeading('Clãs');
         renderClans(content);
+    } else if (currentPage === 'settings') {
+        setPageHeading('Configurações');
+        renderSettings(content);
     } else if (currentPage === 'admin' && canManageMembers()) {
         setPageHeading('Administração');
         renderAdmin(content);
@@ -1990,8 +1994,8 @@ function renderMemberCreator() {
 
                 <label>
                     Senha inicial (mín. 8 caracteres)
-                    <input name="password" type="password" minlength="8" maxlength="128"
-                        placeholder="Senha inicial" required>
+                    <span data-eye-wrap style="position:relative;display:flex;align-items:center;width:100%;"><input style="padding-right:76px;" name="password" type="password" minlength="8" maxlength="128"
+                        placeholder="Senha inicial" required><button type="button" data-eye-btn aria-label="Alternar visibilidade da senha" style="position:absolute;right:10px;background:transparent;border:1px solid rgba(255,255,255,0.16);border-radius:4px;color:inherit;opacity:0.78;cursor:pointer;padding:2px 7px;font-size:10px;letter-spacing:0.06em;line-height:1.2;">VER</button></span>
                 </label>
 
                 <label>
@@ -2675,3 +2679,71 @@ function renderChat(content) {
         ensureChatSocket(content);
     }
 }
+
+
+function renderSettings(container) {
+    const safeUser = escapeHTML(member?.username || member?.loginUsername || member?.nickname || '—');
+    const safeNick = escapeHTML(member?.nickname || '—');
+    const safeRole = escapeHTML(typeof roleLabel === 'function' ? roleLabel(member?.site_role) : (member?.site_role || 'Membro'));
+    const safeClan = escapeHTML(member?.clan || member?.clan_name || 'Sem clã');
+
+    container.innerHTML = `
+        <div class="settings-grid">
+            <section class="card">
+                <h3>Segurança — Alterar palavra-passe</h3>
+                <p class="muted">Atualiza a senha da tua conta shinobi (mínimo de 8 caracteres).</p>
+                <form id="settings-password-form" class="form-stack">
+                    <label>
+                        Palavra-passe atual
+                        <span data-eye-wrap style="position:relative;display:flex;align-items:center;width:100%;"><input style="padding-right:76px;" name="currentPassword" type="password" autocomplete="current-password" required><button type="button" data-eye-btn aria-label="Alternar visibilidade da senha" style="position:absolute;right:10px;background:transparent;border:1px solid rgba(255,255,255,0.16);border-radius:4px;color:inherit;opacity:0.78;cursor:pointer;padding:2px 7px;font-size:10px;letter-spacing:0.06em;line-height:1.2;">VER</button></span>
+                    </label>
+                    <label>
+                        Nova palavra-passe
+                        <span data-eye-wrap style="position:relative;display:flex;align-items:center;width:100%;"><input style="padding-right:76px;" name="newPassword" type="password" autocomplete="new-password" minlength="8" required><button type="button" data-eye-btn aria-label="Alternar visibilidade da senha" style="position:absolute;right:10px;background:transparent;border:1px solid rgba(255,255,255,0.16);border-radius:4px;color:inherit;opacity:0.78;cursor:pointer;padding:2px 7px;font-size:10px;letter-spacing:0.06em;line-height:1.2;">VER</button></span>
+                    </label>
+                    <label>
+                        Confirmar nova palavra-passe
+                        <span data-eye-wrap style="position:relative;display:flex;align-items:center;width:100%;"><input style="padding-right:76px;" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required><button type="button" data-eye-btn aria-label="Alternar visibilidade da senha" style="position:absolute;right:10px;background:transparent;border:1px solid rgba(255,255,255,0.16);border-radius:4px;color:inherit;opacity:0.78;cursor:pointer;padding:2px 7px;font-size:10px;letter-spacing:0.06em;line-height:1.2;">VER</button></span>
+                    </label>
+                    <button type="submit" class="btn-primary">Guardar nova senha</button>
+                </form>
+            </section>
+
+            <section class="card">
+                <h3>Informações da conta</h3>
+                <p class="muted">Resumo atual da tua sessão ativa no Shinobi Verse.</p>
+                <div class="form-stack">
+                    <div><strong>Utilizador:</strong> ${safeUser}</div>
+                    <div><strong>Nickname:</strong> ${safeNick}</div>
+                    <div><strong>Cargo:</strong> ${safeRole}</div>
+                    <div><strong>Clã:</strong> ${safeClan}</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                        <button type="button" id="settings-go-profile" class="btn-secondary">Abrir Meu perfil</button>
+                        <button type="button" id="settings-logout-btn" class="logout-button">Terminar sessão</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    `;
+
+    document.querySelector('#settings-password-form')?.addEventListener('submit', updatePassword);
+    document.querySelector('#settings-go-profile')?.addEventListener('click', () => navigate('profile'));
+    document.querySelector('#settings-logout-btn')?.addEventListener('click', logout);
+}
+
+
+// EYE_TOGGLE_START
+document.addEventListener("click", (event) => {
+  const btn = event.target.closest("[data-eye-btn]");
+  if (!btn) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const wrap = btn.closest("[data-eye-wrap]");
+  const input = wrap ? wrap.querySelector("input") : null;
+  if (!input) return;
+  const show = input.type === "password";
+  input.type = show ? "text" : "password";
+  btn.textContent = show ? "OCULTAR" : "VER";
+  btn.style.opacity = show ? "1" : "0.78";
+});
+// EYE_TOGGLE_END

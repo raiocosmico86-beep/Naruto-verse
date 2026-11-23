@@ -1,4 +1,3 @@
-
 'use strict';
 
 const {
@@ -50,15 +49,37 @@ async function login(req, res) {
         });
     }
 
-    const passwordIsValid = await verifyPassword(
-        password,
-        member.password_hash
-    );
+    const hasNoPasswordYet =
+        !member.password_hash || Boolean(member.must_change_password);
 
-    if (!passwordIsValid) {
-        return res.status(401).json({
-            error: 'Credenciais inválidas.'
-        });
+    if (hasNoPasswordYet) {
+        if (
+            Buffer.byteLength(password, 'utf8') < 8 ||
+            Buffer.byteLength(password, 'utf8') > 128
+        ) {
+            return res.status(400).json({
+                error: 'Escolhe uma senha com entre 8 e 128 caracteres para definir na tua conta.'
+            });
+        }
+
+        const saved = await changePassword(member.id, password);
+
+        if (!saved) {
+            return res.status(500).json({
+                error: 'Não foi possível guardar a tua senha.'
+            });
+        }
+    } else {
+        const passwordIsValid = await verifyPassword(
+            password,
+            member.password_hash
+        );
+
+        if (!passwordIsValid) {
+            return res.status(401).json({
+                error: 'Credenciais inválidas.'
+            });
+        }
     }
 
     const session = await createMemberSession(member.id);
@@ -77,7 +98,9 @@ async function login(req, res) {
     const safeMember = findMemberById(member.id);
 
     return res.status(200).json({
-        message: 'Login efetuado com sucesso.',
+        message: hasNoPasswordYet
+            ? 'Senha definida com sucesso. Agora ela é a tua senha de acesso.'
+            : 'Login efetuado com sucesso.',
         member: safeMember
     });
 }
@@ -104,19 +127,16 @@ function logout(req, res) {
 async function updatePassword(req, res) {
     const { currentPassword, newPassword } = req.body || {};
 
-    if (
-        typeof currentPassword !== 'string' ||
-        typeof newPassword !== 'string' ||
-        !currentPassword ||
-        !newPassword
-    ) {
+    if (typeof newPassword !== 'string' || !newPassword) {
         return res.status(400).json({
-            error: 'Preenche a senha atual e a nova senha.'
+            error: 'Preenche a nova senha.'
         });
     }
 
-    if (Buffer.byteLength(newPassword, 'utf8') < 8 ||
-        Buffer.byteLength(newPassword, 'utf8') > 128) {
+    if (
+        Buffer.byteLength(newPassword, 'utf8') < 8 ||
+        Buffer.byteLength(newPassword, 'utf8') > 128
+    ) {
         return res.status(400).json({
             error: 'A nova senha deve ter entre 8 e 128 bytes.'
         });
@@ -130,15 +150,26 @@ async function updatePassword(req, res) {
         });
     }
 
-    const passwordIsValid = await verifyPassword(
-        currentPassword,
-        member.password_hash
-    );
+    const hasNoPasswordYet =
+        !member.password_hash || Boolean(member.must_change_password);
 
-    if (!passwordIsValid) {
-        return res.status(401).json({
-            error: 'A senha atual está incorreta.'
-        });
+    if (!hasNoPasswordYet) {
+        if (typeof currentPassword !== 'string' || !currentPassword) {
+            return res.status(400).json({
+                error: 'Preenche a senha atual e a nova senha.'
+            });
+        }
+
+        const passwordIsValid = await verifyPassword(
+            currentPassword,
+            member.password_hash
+        );
+
+        if (!passwordIsValid) {
+            return res.status(401).json({
+                error: 'A senha atual está incorreta.'
+            });
+        }
     }
 
     const updated = await changePassword(
